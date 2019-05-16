@@ -25,6 +25,7 @@ const (
 
 const (
 	RequestErrorMessage = "Looks like there was a hick-up in my though process. Could you please try again?"
+	HelloWorldMessage   = "hello world!"
 )
 
 // TextMessage defines a response of type text message.
@@ -223,5 +224,18 @@ type Replies struct {
 	Replies []interface{} `json:"replies"`
 }
 
+// Reply
 type Reply struct {
+}
+
+// DataArray
+type DataArray []DataResponse
+
+// DataResponse
+type DataResponse struct {
+	URI         string   `json:"uri"`
+	Title       string   `json:"title"`
+	Tags        []string `json:"tags"`
+	Description string   `json:"description"`
+	Content     string   `json:"content"`
 }
