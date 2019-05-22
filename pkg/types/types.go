@@ -25,6 +25,7 @@ const (
 
 const (
 	RequestErrorMessage = "Looks like there was a hick-up in my though process. Could you please try again?"
+	NothingFound        = "Sorry but I couldn't find anything matching your question! :-("
 	HelloWorldMessage   = "hello world!"
 )
 
@@ -204,9 +205,10 @@ type ListContent struct {
 //
 // }
 type Request struct {
-	IndexJsonUrl string `json:"indexJsonUrl"`
+	IndexJSONURL string `json:"indexJsonUrl"`
 	Query        string `json:"query"`
 	ResponseType string `json:"responseType"`
+	MaxResults   int    `json:"maxResults,omitempty"`
 }
 
 // Conversation is a subtype of the Request type.

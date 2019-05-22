@@ -16,6 +16,7 @@ package function
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/blevesearch/bleve"
 
@@ -51,7 +52,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		data, err := getSearchIndex(request.IndexJsonUrl)
+		data, err := getSearchIndex(request.IndexJSONURL)
 		if err != nil {
 			log.Printf("failed to retrieve search index: %+v\n", err)
 			replies = append(replies, generateTextMessage(types.RequestErrorMessage, 0))
@@ -65,7 +66,10 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		index.Index("content", data)
+
+		for idx, d := range data {
+			index.Index(strconv.Itoa(idx), d)
+		}
 
 		query := bleve.NewQueryStringQuery(request.Query)
 		searchRequest := bleve.NewSearchRequest(query)
@@ -73,16 +77,38 @@ func Search(w http.ResponseWriter, r *http.Request) {
 
 		defer index.Close()
 
-		log.Printf("found %d hits", len(searchResult.Hits))
-		log.Printf("result %+v hits for query %s", searchResult, request.Query)
+		log.Printf("Found %d hits for query '%s':\n", len(searchResult.Hits), request.Query)
+		log.Printf("Ranking: %+v", searchResult)
+		var buttons []types.Button
+		for _, h := range searchResult.Hits {
+			if h.Score > 0.2 { // TODO: make this a parameter
+				idx, err := strconv.Atoi(h.ID)
+				if err != nil {
+					log.Printf("failed to convert lookup id for %+v: %+v\n", h.ID, err)
+					replies = append(replies, generateTextMessage(types.RequestErrorMessage, 0))
+					break
+				}
+				log.Printf("%d >>> %s\n", idx, data[idx].Title)
+				log.Printf("%d >>> %s\n", idx, data[idx].URI)
+				buttons = append(buttons, types.Button{
+					Title: data[idx].Title,
+					Type:  "web_url",
+					Value: data[idx].URI,
+				})
+			}
+		}
 
-		//for _, d := range data {
-		//	fmt.Printf("%+v\n", d.Title)
-		//}
-
-		//for _, s := range searchResult.Hits {
-		//	fmt.Printf("%+v\n", s.Fields)
-		//}
+		if len(buttons) > 0 {
+			replies = append(replies, types.Buttons{
+				Type: types.ButtonsType,
+				Content: types.ButtonsContent{
+					Title:   "Here is what I found:",
+					Buttons: buttons,
+				},
+			})
+		} else { // didn't find anything above threshold
+			replies = append(replies, generateTextMessage(types.NothingFound, 0))
+		}
 
 		output, err := json.Marshal(types.Replies{Replies: replies})
 		if err != nil {
