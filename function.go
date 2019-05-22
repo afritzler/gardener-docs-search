@@ -27,6 +27,10 @@ import (
 	"github.com/afritzler/gardener-docs-search/pkg/types"
 )
 
+// cache indexing objects
+var index bleve.Index
+var data types.DataArray
+
 // Search is the main entry point in our Cloud Function
 func Search(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -52,30 +56,41 @@ func Search(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		data, err := getSearchIndex(request.IndexJSONURL)
-		if err != nil {
-			log.Printf("failed to retrieve search index: %+v\n", err)
-			replies = append(replies, generateTextMessage(types.RequestErrorMessage, 0))
-			break
-		}
-		log.Printf("got the data: found %d entries", len(data))
-
-		log.Println("building up new index")
-		mapping := bleve.NewIndexMapping()
-		index, err := bleve.NewMemOnly(mapping)
-		if err != nil {
-			panic(err)
+		if data == nil {
+			log.Printf("fetching new data")
+			data, err = getSearchIndex(request.IndexJSONURL)
+			if err != nil {
+				log.Printf("failed to retrieve search index: %+v\n", err)
+				replies = append(replies, generateTextMessage(types.RequestErrorMessage, 0))
+				break
+			}
+			log.Printf("got the data: found %d entries", len(data))
+		} else {
+			log.Printf("got the data from cache: found %d entries", len(data))
 		}
 
-		for idx, d := range data {
-			index.Index(strconv.Itoa(idx), d)
+		// check if index has been already build
+		if index == nil {
+			log.Println("building up new index")
+			mapping := bleve.NewIndexMapping()
+			index, err = bleve.NewMemOnly(mapping)
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf("indexing documents ...")
+			for idx, d := range data {
+				index.Index(strconv.Itoa(idx), d)
+			}
+		} else {
+			log.Println("found existing index")
 		}
 
 		query := bleve.NewQueryStringQuery(request.Query)
 		searchRequest := bleve.NewSearchRequest(query)
 		searchResult, _ := index.Search(searchRequest)
 
-		defer index.Close()
+		//defer index.Close()
 
 		log.Printf("Found %d hits for query '%s':\n", len(searchResult.Hits), request.Query)
 		log.Printf("Ranking: %+v", searchResult)
