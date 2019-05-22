@@ -25,6 +25,8 @@ const (
 
 const (
 	RequestErrorMessage = "Looks like there was a hick-up in my though process. Could you please try again?"
+	NothingFound        = "Sorry but I couldn't find anything matching your question! :-("
+	HelloWorldMessage   = "hello world!"
 )
 
 // TextMessage defines a response of type text message.
@@ -203,9 +205,10 @@ type ListContent struct {
 //
 // }
 type Request struct {
-	IndexJsonUrl string `json:"indexJsonUrl"`
+	IndexJSONURL string `json:"indexJsonUrl"`
 	Query        string `json:"query"`
 	ResponseType string `json:"responseType"`
+	MaxResults   int    `json:"maxResults,omitempty"`
 }
 
 // Conversation is a subtype of the Request type.
@@ -223,5 +226,18 @@ type Replies struct {
 	Replies []interface{} `json:"replies"`
 }
 
+// Reply
 type Reply struct {
+}
+
+// DataArray
+type DataArray []DataResponse
+
+// DataResponse
+type DataResponse struct {
+	URI         string   `json:"uri"`
+	Title       string   `json:"title"`
+	Tags        []string `json:"tags"`
+	Description string   `json:"description"`
+	Content     string   `json:"content"`
 }
