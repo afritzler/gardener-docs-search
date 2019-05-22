@@ -67,8 +67,8 @@ github.com/steveyen/gtreap
 github.com/tinylib/msgp/msgp
 # github.com/willf/bitset v1.1.10
 github.com/willf/bitset
-# golang.org/x/net v0.0.0-20190514140710-3ec191127204
+# golang.org/x/net v0.0.0-20190520210107-018c4d40a106
 golang.org/x/net/context
-# golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+# golang.org/x/sys v0.0.0-20190522044717-8097e1b27ff5
 golang.org/x/sys/unix
 golang.org/x/sys/windows
