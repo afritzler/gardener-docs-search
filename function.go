@@ -90,8 +90,6 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		searchRequest := bleve.NewSearchRequest(query)
 		searchResult, _ := index.Search(searchRequest)
 
-		//defer index.Close()
-
 		log.Printf("Found %d hits for query '%s':\n", len(searchResult.Hits), request.Query)
 		log.Printf("Ranking: %+v", searchResult)
 		var buttons []types.Button
