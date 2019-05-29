@@ -25,5 +25,5 @@ run:
 # Cross compilation
 build-linux:
 		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v $(MAIN)
-image: build
+image: 
 		docker build -t $(IMAGE):$(TAG) .
